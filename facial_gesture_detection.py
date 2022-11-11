@@ -11,7 +11,6 @@ from picamera2 import Picamera2, Preview
 def checkGesture(frames):
     print(stats.mean(frames))
      
-     
 
 picam2 = Picamera2()
 picam2.configure(picam2.create_preview_configuration(main={"format": 'XRGB8888', "size": (1280, 720)}))
