@@ -5,12 +5,8 @@ import numpy as np
 import faceBlendCommon as face
 import matplotlib.pyplot as plt
 import statistics as stats
-
+from time import sleep
 from picamera2 import Picamera2, Preview
-
-def checkGesture(frames):
-    print(stats.mean(frames))
-     
 
 picam2 = Picamera2()
 picam2.configure(picam2.create_preview_configuration(main={"format": 'XRGB8888', "size": (1280, 720)}))
@@ -20,13 +16,13 @@ detector = dlib.get_frontal_face_detector()
 predictor = dlib.shape_predictor("shape_predictor_68_face_landmarks.dat")
 
 index = 0
-max_frames = 20
+max_frames = 10
 curr_frames = []
 total_frames = []
 time = []
 while(True):
     index += 1
-    print(index)
+    #print(index)
     #ret, frame = vid.read()
     
     #print(frame)
@@ -40,9 +36,19 @@ while(True):
         landmarks = predictor(gray, face)
         x = landmarks.part(30).x
         y = landmarks.part(30).y
-        
-        if index % 20 == 0:
-            checkGesture(total_frames[-20:]) 
+        if index % max_frames == 0:
+            if index == max_frames:
+                last_val = stats.mean(total_frames[-1*max_frames:])
+            else:
+                frames = total_frames[-1*max_frames:]
+                if (stats.mean(frames)) < last_val-7:
+                    print("right")
+                    sleep(2)
+                elif stats.mean(frames) > last_val+7:
+                    print("left") 
+                    sleep(2)
+                last_val = stats.mean(frames)
+            total_frames = total_frames[-1*max_frames:]
 
         total_frames.append(x)
         time.append(index)
