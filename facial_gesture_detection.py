@@ -16,7 +16,9 @@ detector = dlib.get_frontal_face_detector()
 predictor = dlib.shape_predictor("shape_predictor_68_face_landmarks.dat")
 
 index = 0
-max_frames = 10
+last_val = 0
+max_frames = 8
+flagged = (False, 0)
 curr_frames = []
 total_frames = []
 time = []
@@ -41,13 +43,18 @@ while(True):
                 last_val = stats.mean(total_frames[-1*max_frames:])
             else:
                 frames = total_frames[-1*max_frames:]
-                if (stats.mean(frames)) < last_val-7:
+                #print(stats.mean(frames))
+                if (stats.mean(frames)) < last_val-7 and not flagged[0]:
                     print("right")
-                    sleep(2)
-                elif stats.mean(frames) > last_val+7:
+                    flagged = (True, index)
+                    # sleep(2)
+                elif stats.mean(frames) > last_val+7 and not flagged[0]:
                     print("left") 
-                    sleep(2)
+                    flagged = (True, index)
+                    # sleep(2)
                 last_val = stats.mean(frames)
+                if index > flagged[1] + max_frames*2:
+                    flagged = (False, 0)
             total_frames = total_frames[-1*max_frames:]
 
         total_frames.append(x)
