@@ -1,0 +1,45 @@
+#include "FastLED.h"
+CRGB LEDs[20];
+
+void setup() {
+  Serial.begin(115200);
+  Serial.setTimeout(1);
+  FastLED.addLeds<WS2812B, 2, GRB>(LEDs,20);
+  for(int x=0; x<8; x++)
+  {
+    LEDs[x+6]= CRGB::Red;
+    FastLED.show();
+  }
+
+}
+void loop() {
+  while (!Serial.available());
+  int x = Serial.readString().toInt();
+  Serial.print(x + 1);
+  if (x==0) {
+    for(int x=0; x<5; x++)
+      {
+    
+        //LEDs[pos] = CRGB(red,blue,green);
+        LEDs[4-x] = CRGB(89, 255, 0);
+        LEDs[x+15] = CRGB(89, 255, 0);
+        FastLED.show();
+        delay(20 * (5-x));
+      } 
+      delay(100);
+      for(int x=0; x<5; x++)
+      {
+        /*int red = random(0,255);
+        int blue = random(0,255);
+        int green = random(0,255);
+        int pos = random(7,15);*/
+        //LEDs[pos] = CRGB(red,blue,green);
+        LEDs[4-x] = CRGB::Black;
+        LEDs[x+15] = CRGB::Black;
+        FastLED.show();
+        //delay(20 * (5-x));
+      } 
+       FastLED.show();
+      delay(100);
+  }
+}
