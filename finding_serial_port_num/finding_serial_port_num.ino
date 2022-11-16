@@ -15,31 +15,36 @@ void setup() {
 void loop() {
   while (!Serial.available());
   int x = Serial.readString().toInt();
-  Serial.print(x + 1);
+  Serial.print(x);
   if (x==0) {
     for(int x=0; x<5; x++)
       {
-    
-        //LEDs[pos] = CRGB(red,blue,green);
         LEDs[4-x] = CRGB(89, 255, 0);
-        LEDs[x+15] = CRGB(89, 255, 0);
         FastLED.show();
         delay(20 * (5-x));
       } 
       delay(100);
       for(int x=0; x<5; x++)
       {
-        /*int red = random(0,255);
-        int blue = random(0,255);
-        int green = random(0,255);
-        int pos = random(7,15);*/
-        //LEDs[pos] = CRGB(red,blue,green);
         LEDs[4-x] = CRGB::Black;
+        FastLED.show();
+      } 
+       FastLED.show();
+      delay(100);
+  } else if (x==1) {
+    for(int x=0; x<5; x++)
+      {
+        LEDs[x+15] = CRGB(89, 255, 0);
+        FastLED.show();
+        delay(20 * (5-x));
+      } 
+      delay(100);
+      for(int x=0; x<5; x++) {
         LEDs[x+15] = CRGB::Black;
         FastLED.show();
         //delay(20 * (5-x));
       } 
-       FastLED.show();
+      FastLED.show();
       delay(100);
   }
 }

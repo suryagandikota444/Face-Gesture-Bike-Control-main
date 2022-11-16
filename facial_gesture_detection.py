@@ -17,10 +17,9 @@ picam2.start()
 
 def write_read(x):
     arduino.write(bytes(str(x), 'utf-8'))
-    time.sleep(1)
     data = arduino.readline()
     return data
-    
+
 detector = dlib.get_frontal_face_detector()
 predictor = dlib.shape_predictor("shape_predictor_68_face_landmarks.dat")
 
@@ -56,10 +55,12 @@ while(True):
                 if (stats.mean(frames)) < last_val-7 and not flagged[0]:
                     print("right")
                     flagged = (True, index)
+                    write_read(0)
                     # sleep(2)
                 elif stats.mean(frames) > last_val+7 and not flagged[0]:
                     print("left") 
                     flagged = (True, index)
+                    write_read(1)
                     # sleep(2)
                 last_val = stats.mean(frames)
                 if index > flagged[1] + max_frames*2:

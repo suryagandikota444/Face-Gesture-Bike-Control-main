@@ -9,6 +9,6 @@ def write_read(x):
     return data
 
 while True:
-    num = 0
+    num = 1
     value = write_read(num)
     print(value)
