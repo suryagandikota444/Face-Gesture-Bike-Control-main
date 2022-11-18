@@ -7,10 +7,18 @@ import matplotlib.pyplot as plt
 import statistics as stats
 from time import sleep
 from picamera2 import Picamera2, Preview
+import serial
+import time
+arduino = serial.Serial(port='/dev/ttyUSB0', baudrate=115200, timeout=.1)
 
 picam2 = Picamera2()
 picam2.configure(picam2.create_preview_configuration(main={"format": 'XRGB8888', "size": (1280, 720)}))
 picam2.start()
+
+def write_read(x):
+    arduino.write(bytes(str(x), 'utf-8'))
+    data = arduino.readline()
+    return data
 
 detector = dlib.get_frontal_face_detector()
 predictor = dlib.shape_predictor("shape_predictor_68_face_landmarks.dat")
@@ -47,10 +55,12 @@ while(True):
                 if (stats.mean(frames)) < last_val-7 and not flagged[0]:
                     print("right")
                     flagged = (True, index)
+                    write_read(0)
                     # sleep(2)
                 elif stats.mean(frames) > last_val+7 and not flagged[0]:
                     print("left") 
                     flagged = (True, index)
+                    write_read(1)
                     # sleep(2)
                 last_val = stats.mean(frames)
                 if index > flagged[1] + max_frames*2:
