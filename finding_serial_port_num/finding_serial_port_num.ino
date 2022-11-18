@@ -29,7 +29,7 @@ void loop() {
         LEDs[4-x] = CRGB::Black;
         FastLED.show();
       } 
-       FastLED.show();
+      FastLED.show();
       delay(100);
   } else if (x==1) {
     for(int x=0; x<5; x++)
