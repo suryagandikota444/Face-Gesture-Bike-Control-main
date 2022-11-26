@@ -9,10 +9,14 @@ from time import sleep
 from picamera2 import Picamera2, Preview
 import serial
 import time
-arduino = serial.Serial(port='/dev/ttyUSB0', baudrate=115200, timeout=.1)
+try:
+    arduino = serial.Serial(port='/dev/ttyUSB0', baudrate=115200, timeout=.1)
+except:
+    arduino = False
 
 picam2 = Picamera2()
-picam2.configure(picam2.create_preview_configuration(main={"format": 'XRGB8888', "size": (1280, 720)}))
+
+picam2.configure(picam2.create_preview_configuration(main={"format": 'XRGB8888', "size": (640, 480)}))
 picam2.start()
 
 def write_read(x):
@@ -30,6 +34,9 @@ flagged = (False, 0)
 curr_frames = []
 total_frames = []
 time = []
+file = open("indicator.txt", "w")
+file.write("None")
+file.close()
 while(True):
     index += 1
     #print(index)
@@ -40,8 +47,17 @@ while(True):
     im = picam2.capture_array()
     frame = cv2.resize(im, (200, 150), fx=0, fy=0, interpolation = cv2.INTER_CUBIC)
     gray = cv2.cvtColor(frame, code=cv2.COLOR_BGR2GRAY)
-    
+
     faces = detector(gray)
+    if index % max_frames == 0:
+        if stats.mean(im[0][0][:3]) < 125:
+            file = open("headlight.txt", "w")
+            file.write("On")
+            file.close()
+        else:
+            file = open("headlight.txt", "w")
+            file.write("Off")
+            file.close()   
     for face in faces:
         landmarks = predictor(gray, face)
         x = landmarks.part(30).x
@@ -54,17 +70,28 @@ while(True):
                 #print(stats.mean(frames))
                 if (stats.mean(frames)) < last_val-7 and not flagged[0]:
                     print("right")
+                    file = open("indicator.txt", "w")
+                    file.write("Right")
+                    file.close()
                     flagged = (True, index)
-                    write_read(0)
+                    if arduino != False:
+                        write_read(0)
                     # sleep(2)
                 elif stats.mean(frames) > last_val+7 and not flagged[0]:
                     print("left") 
+                    file = open("indicator.txt", "w")
+                    file.write("Left")
+                    file.close()
                     flagged = (True, index)
-                    write_read(1)
+                    if arduino != False:
+                        write_read(1)
                     # sleep(2)
                 last_val = stats.mean(frames)
-                if index > flagged[1] + max_frames*2:
+                if index > flagged[1] + max_frames*6:
                     flagged = (False, 0)
+                    file = open("indicator.txt", "w")
+                    file.write("None")
+                    file.close()
             total_frames = total_frames[-1*max_frames:]
 
         total_frames.append(x)
@@ -75,9 +102,3 @@ while(True):
     cv2.imshow(winname="Face", mat=frame)
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
-
-plt.plot(time, total_frames, 'o')
-plt.show()
- 
-
-cv2.destroyAllWindows()
