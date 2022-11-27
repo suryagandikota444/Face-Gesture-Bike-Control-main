@@ -24,6 +24,18 @@ def write_read(x):
     data = arduino.readline()
     return data
 
+def increase_brightness(img, value=50):
+    hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+    h, s, v = cv2.split(hsv)
+
+    lim = 255 - value
+    v[v > lim] = 255
+    v[v <= lim] += value
+
+    final_hsv = cv2.merge((h, s, v))
+    img = cv2.cvtColor(final_hsv, cv2.COLOR_HSV2BGR)
+    return img
+
 detector = dlib.get_frontal_face_detector()
 predictor = dlib.shape_predictor("shape_predictor_68_face_landmarks.dat")
 
@@ -46,6 +58,7 @@ while(True):
     #frame = cv2.flip(frame,1)
     im = picam2.capture_array()
     frame = cv2.resize(im, (200, 150), fx=0, fy=0, interpolation = cv2.INTER_CUBIC)
+    frame = increase_brightness(frame)
     gray = cv2.cvtColor(frame, code=cv2.COLOR_BGR2GRAY)
 
     faces = detector(gray)
