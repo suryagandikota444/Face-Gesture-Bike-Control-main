@@ -24,7 +24,7 @@ def write_read(x):
     data = arduino.readline()
     return data
 
-def increase_brightness(frame, value=50):
+def increase_brightness(frame, value=120):
     hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
     h, s, v = cv2.split(hsv)
 
@@ -40,11 +40,14 @@ predictor = dlib.shape_predictor("shape_predictor_68_face_landmarks.dat")
 
 index = 0
 last_val = 0
+prev = False
+count_turn = 0
 max_frames = 8
 flagged = (False, 0)
 curr_frames = []
 total_frames = []
 time = []
+turn1 = False
 file = open("indicator.txt", "w")
 file.write("None")
 file.close()
@@ -58,15 +61,6 @@ while(True):
     gray = cv2.cvtColor(frame, code=cv2.COLOR_BGR2GRAY)
 
     faces = detector(gray)
-    if index % max_frames == 0:
-        if stats.mean(im[0][0][:3]) < 125:
-            file = open("headlight.txt", "w")
-            file.write("On")
-            file.close()
-        else:
-            file = open("headlight.txt", "w")
-            file.write("Off")
-            file.close()   
 
     for face in faces:
         landmarks = predictor(gray, face)
@@ -80,24 +74,49 @@ while(True):
                 frames = total_frames[-1*max_frames:]
 
                 if (stats.mean(frames)) < last_val-7 and not flagged[0]:
-                    print("right")
-                    file = open("indicator.txt", "w")
-                    file.write("Right")
-                    file.close()
-                    flagged = (True, index)
-                    if arduino != False:
-                        write_read(0)
-
+                    count_turn += 1
+                    turn1 = True
+                    if count_turn == 1:
+                        prev = True
+                    print("curr_val: {}".format(stats.mean(frames)))
+                    print("prev_val: {}".format(last_val))
+                    if count_turn == 2:
+                        print("right")
+                        file = open("indicator.txt", "w")
+                        file.write("Right")
+                        file.close()
+                        flagged = (True, index)
+                        if arduino != False:
+                            write_read(0)
+                        last_val = stats.mean(frames)
+                        count_turn = 0
+                        prev = False
                 elif stats.mean(frames) > last_val+7 and not flagged[0]:
-                    print("left") 
-                    file = open("indicator.txt", "w")
-                    file.write("Left")
-                    file.close()
-                    flagged = (True, index)
-                    if arduino != False:
-                        write_read(1)
-
-                last_val = stats.mean(frames)
+                    count_turn += 1
+                    turn1 = True
+                    if count_turn == 1:
+                        prev = True
+                    print("curr_val: {}".format(stats.mean(frames)))
+                    print("prev_val: {}".format(last_val))
+                    if count_turn == 2:
+                        print("left") 
+                        file = open("indicator.txt", "w")
+                        file.write("Left")
+                        file.close()
+                        flagged = (True, index)
+                        if arduino != False:
+                            write_read(1)
+                        last_val = stats.mean(frames)
+                        count_turn = 0
+                        prev = False
+                else:
+                    turn1 = False
+                
+                if turn1 == False and prev == True:
+                    count_turn == 0
+            
+                if count_turn == 0:
+                    last_val = stats.mean(frames)
                 
                 if index > flagged[1] + max_frames*6:
                     flagged = (False, 0)
