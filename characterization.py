@@ -54,22 +54,21 @@ while(True):
         y2 = face.bottom() # bottom point
 
         landmarks = predictor(gray, face)
-        for i in range(60):
+        # for i in range(60):
 
-            x = landmarks.part(i).x
-            y = landmarks.part(i).y
-        # total_frames.append(x)
-        # total_frames_y.append(y)
-        # time.append(index)
+        x = landmarks.part(30).x
+        y = landmarks.part(30).y
+        total_frames.append(x)
+        total_frames_y.append(y)
+        time.append(index)
 
-            cv2.circle(img=frame, center=(x, y), radius=5, color=(0, 255, 0), thickness=-1)
-    # if index > 300:
-    #     plt.plot(time, total_frames)
-    #     plt.show()
-    #     plt.plot(time, total_frames_y)
-    #     plt.show()
-    #     break
-        cv2.rectangle(img=frame, pt1=(x1, y1), pt2=(x2, y2), color=(0, 255, 0), thickness=4)
+        cv2.circle(img=frame, center=(x, y), radius=5, color=(0, 255, 0), thickness=-1)
+
+    if index > 300:
+        plt.plot(time, total_frames)
+        plt.show()
+        break
+        # cv2.rectangle(img=frame, pt1=(x1, y1), pt2=(x2, y2), color=(0, 255, 0), thickness=4)
 
     cv2.imshow(winname="Face", mat=frame)
     if cv2.waitKey(1) & 0xFF == ord('q'):
