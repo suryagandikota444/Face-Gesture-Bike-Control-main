@@ -66,64 +66,7 @@ while(True):
         landmarks = predictor(gray, face)
         x = landmarks.part(30).x
         y = landmarks.part(30).y
-        if index % max_frames == 0:
-
-            if index == max_frames:
-                last_val = stats.mean(total_frames[-1*max_frames:])
-            else:
-                frames = total_frames[-1*max_frames:]
-
-                if (stats.mean(frames)) < last_val-7 and not flagged[0]:
-                    count_turn += 1
-                    turn1 = True
-                    if count_turn == 1:
-                        prev = True
-                    print("curr_val: {}".format(stats.mean(frames)))
-                    print("prev_val: {}".format(last_val))
-                    if count_turn == 2:
-                        print("right")
-                        file = open("indicator.txt", "w")
-                        file.write("Right")
-                        file.close()
-                        flagged = (True, index)
-                        if arduino != False:
-                            write_read(0)
-                        last_val = stats.mean(frames)
-                        count_turn = 0
-                        prev = False
-                elif stats.mean(frames) > last_val+7 and not flagged[0]:
-                    count_turn += 1
-                    turn1 = True
-                    if count_turn == 1:
-                        prev = True
-                    print("curr_val: {}".format(stats.mean(frames)))
-                    print("prev_val: {}".format(last_val))
-                    if count_turn == 2:
-                        print("left") 
-                        file = open("indicator.txt", "w")
-                        file.write("Left")
-                        file.close()
-                        flagged = (True, index)
-                        if arduino != False:
-                            write_read(1)
-                        last_val = stats.mean(frames)
-                        count_turn = 0
-                        prev = False
-                else:
-                    turn1 = False
-                
-                if turn1 == False and prev == True:
-                    count_turn == 0
-            
-                if count_turn == 0:
-                    last_val = stats.mean(frames)
-                
-                if index > flagged[1] + max_frames*6:
-                    flagged = (False, 0)
-                    file = open("indicator.txt", "w")
-                    file.write("None")
-                    file.close()
-            total_frames = total_frames[-1*max_frames:]
+        
 
         total_frames.append(x)
         time.append(index)
