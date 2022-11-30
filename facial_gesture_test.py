@@ -8,7 +8,6 @@ import statistics as stats
 from time import sleep
 from picamera2 import Picamera2, Preview
 import serial
-import time
 try:
     arduino = serial.Serial(port='/dev/ttyUSB0', baudrate=115200, timeout=.1)
 except:
@@ -24,7 +23,7 @@ def write_read(x):
     data = arduino.readline()
     return data
 
-def increase_brightness(frame, value=120):
+def increase_brightness(frame, value=50):
     hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
     h, s, v = cv2.split(hsv)
 
@@ -39,15 +38,11 @@ detector = dlib.get_frontal_face_detector()
 predictor = dlib.shape_predictor("shape_predictor_68_face_landmarks.dat")
 
 index = 0
-last_val = 0
-prev = False
-count_turn = 0
-max_frames = 8
-flagged = (False, 0)
-curr_frames = []
 total_frames = []
-time = []
-turn1 = False
+running_avg = []
+z_score_threshold = 5
+window = 5
+flagged = {"flagged": False, "index": 0}
 file = open("indicator.txt", "w")
 file.write("None")
 file.close()
@@ -67,9 +62,49 @@ while(True):
         x = landmarks.part(30).x
         y = landmarks.part(30).y
         
+        if len(total_frames) < 200:
+            total_frames.append(x)
+        else:
+            total_frames.pop(0)
+            total_frames.append(x)
 
-        total_frames.append(x)
-        time.append(index)
+        if index % window == 0:
+            avg = stats.mean(total_frames[-1*window:])
+            if len(running_avg) < 10:
+                running_avg.append(avg)
+                print("initializing")
+            else:
+                total_mean = stats.mean(running_avg[-1*window*5:])
+                total_stdev = stats.stdev(running_avg[-1*window*5:])
+                z_score = (x-total_mean)/total_stdev
+                # print(z_score)
+                if z_score > z_score_threshold and not flagged["flagged"]:
+                    print("Left")
+                    flagged["flagged"] = True
+                    flagged["index"] = index
+                    file = open("indicator.txt", "w")
+                    file.write("Left")
+                    file.close()
+                    if arduino != False:
+                        write_read(1)
+                elif z_score < -1*z_score_threshold and not flagged["flagged"]:
+                    print("Right")
+                    flagged["flagged"] = True
+                    flagged["index"] = index
+                    file = open("indicator.txt", "w")
+                    file.write("Right")
+                    file.close()
+                    if arduino != False:
+                        write_read(0)
+                running_avg.append(avg)
+
+                if index > flagged["index"] + 10 and flagged["index"]:
+                    print("reset")
+                    flagged["flagged"] = False
+                    flagged["index"] = index
+                    file = open("indicator.txt", "w")
+                    file.write("None")
+                    file.close()
 
         cv2.circle(img=frame, center=(x, y), radius=5, color=(0, 255, 0), thickness=-1)
 

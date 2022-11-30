@@ -10,9 +10,14 @@ from picamera2 import Picamera2, Preview
 import serial
 import time
 try:
-    arduino = serial.Serial(port='/dev/ttyUSB0', baudrate=115200, timeout=.1)
+    arduino = serial.Serial(port='/dev/ttyUSB0', baudrate=115200, timeout=0.1)
 except:
     arduino = False
+    try:
+        arduino = serial.Serial(port='/dev/ttyUSB1', baudrate=115200, timeout=0.1)
+    except:
+        arduino = False
+
 
 picam2 = Picamera2()
 
@@ -79,27 +84,27 @@ while(True):
             else:
                 frames = total_frames[-1*max_frames:]
 
-                if (stats.mean(frames)) < last_val-7 and not flagged[0]:
+                if (stats.mean(frames)) < last_val-10 and not flagged[0]:
                     print("right")
                     file = open("indicator.txt", "w")
                     file.write("Right")
                     file.close()
                     flagged = (True, index)
                     if arduino != False:
-                        write_read(0)
+                        write_read(1)
 
-                elif stats.mean(frames) > last_val+7 and not flagged[0]:
+                elif stats.mean(frames) > last_val+10 and not flagged[0]:
                     print("left") 
                     file = open("indicator.txt", "w")
                     file.write("Left")
                     file.close()
                     flagged = (True, index)
                     if arduino != False:
-                        write_read(1)
+                        write_read(0)
 
                 last_val = stats.mean(frames)
                 
-                if index > flagged[1] + max_frames*6:
+                if index > flagged[1] + max_frames*3:
                     flagged = (False, 0)
                     file = open("indicator.txt", "w")
                     file.write("None")
